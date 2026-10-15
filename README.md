@@ -64,4 +64,4 @@ The planner reads your calendars and writes task blocks to one of them. Before u
 - Code, prompts, and the capture page: [MIT](LICENSE)
 - Documentation (everything in `docs/` and `examples/`): [CC BY 4.0](LICENSE-DOCS.md)
 
-You can reuse and adapt both. Please give credit.
+© 2026 Gordon Inman (ExploreLearnMake). You can reuse and adapt both. Please give credit.

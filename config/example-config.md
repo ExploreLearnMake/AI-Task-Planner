@@ -29,7 +29,7 @@ Every placeholder used in this repository, in one place. Fill in your own copy (
 
 ## Example YOUR RULES block
 
-This is a real rule set with identifying details removed. Use it as a model, not a default.
+This example is based on a real rule set, adjusted to a standard 9-to-5 workday. Use it as a model, not a default.
 
 ```text
 AREAS:
@@ -41,12 +41,12 @@ AREAS:
   growth → "Professional Growth" (Tangerine)
 WORKDAY: Mon–Fri (Mon–Thu during ALT SCHEDULE), not CLOSED, not inside an availability "out" range.
 CLOSED: a CLOSURES event that day whose title contains "Closed", or an all-day out-of-office on WORK.
-WINDOWS: tasks 07:30–15:30 (ALT 07:30–17:00). 06:30–07:30 is email time, no blocks. Hard stop 16:00 (ALT 17:00); only urgency "today" may run past the soft end. Never evenings or weekends.
-LUNCH: keep one continuous 45-minute gap inside 11:00–13:00; if meetings already leave none, add no blocks there.
-BREAKS: ~10:00 and ~14:00 (ALT ~14:30).
+WINDOWS: tasks 09:30–16:30 (ALT 08:00–18:00). 09:00–09:30 is email time, no blocks. Hard stop 17:00 (ALT 18:30); only urgency "today" may run past the soft end. Never evenings or weekends.
+LUNCH: keep one continuous 45-minute gap inside 11:30–13:30; if meetings already leave none, add no blocks there.
+BREAKS: ~10:30 and ~15:00 (ALT ~15:30).
 CAP: Mon/Thu 90 min; Tue/Wed/Fri 150 min. ALT: Mon/Thu 120; Tue/Wed 210. "light" day → half. ≥4 h of meetings → max 60. Urgent may exceed.
-GROWTH: up to 120 min/week as two 60-min blocks, Tue and Fri 13:00–15:30 (ALT: Thu instead of Fri). Counts toward the cap.
-RHYTHM: at most one deep block (60–120 min) per day, before 11:00 when possible; other blocks ≤ 45 min (growth 60). Never the same project twice in a row, except a short different-project task after the deep block. Mix areas. After lunch prefer "learn" tasks, then short admin/followup/prep.
+GROWTH: up to 120 min/week as two 60-min blocks, Tue and Fri 14:00–16:30 (ALT: Thu instead of Fri). Counts toward the cap.
+RHYTHM: at most one deep block (60–120 min) per day, before 11:30 when possible; other blocks ≤ 45 min (growth 60). Never the same project twice in a row, except a short different-project task after the deep block. Mix areas. After lunch prefer "learn" tasks, then short admin/followup/prep.
 BUFFERS: 10 min before and after busy meetings.
 MEETING PREP: prep for a named meeting is due the workday before. The Thursday committee meeting: prep by end of Wednesday.
 HOME SITE: main campus. TRAVEL: 30 min each way.

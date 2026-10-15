@@ -29,7 +29,7 @@ During summer, Maricopa employees work four 10-hour days with Fridays closed. Th
 - **"First Day of Faculty Accountability"** (August): the regular schedule resumes the following Monday.
 
 ```text
-ALT SCHEDULE: SUMMER = from the Monday after the CLOSURES event "Last Day of Faculty Accountability" (a Friday in May) until the day before the Monday after "First Day of Faculty Accountability" (a Friday in August). meta/config.altSchedule start/end override when set. WORKDAY in SUMMER = Mon–Thu. Task window 07:30–17:00, hard stop 17:00.
+ALT SCHEDULE: SUMMER = from the Monday after the CLOSURES event "Last Day of Faculty Accountability" (a Friday in May) until the day before the Monday after "First Day of Faculty Accountability" (a Friday in August). meta/config.altSchedule start/end override when set. WORKDAY in SUMMER = Mon–Thu. Task window and hard stop follow your 10-hour day (e.g. 08:00–18:00, hard stop 18:30).
 ```
 
 The capture page's **Settings → Alternate schedule** lets you override the dates if the district calendar changes.

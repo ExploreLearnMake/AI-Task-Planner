@@ -4,7 +4,7 @@ The documentation in this repository (the `docs/` and `examples/` folders, and t
 
 You may share and adapt it for any purpose, including commercially, as long as you give appropriate credit, link to the license, and indicate if you made changes.
 
-Credit line: *"Based on AI Task Planner by ExploreLearnMake (github.com/ExploreLearnMake/AI-Task-Planner), CC BY 4.0."*
+Credit line: *"Based on AI Task Planner by Gordon Inman (ExploreLearnMake) (github.com/ExploreLearnMake/AI-Task-Planner), CC BY 4.0."*
 
 Full license text: https://creativecommons.org/licenses/by/4.0/legalcode
 

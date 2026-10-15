@@ -31,12 +31,12 @@ How to run the interview:
    - Is there a calendar that marks closures or holidays? How are closed days labeled? Example: titles containing "Closed".
 
 2. Your workday
-   - What time do you usually start, and when do you aim to stop? Is there a hard stop you never want to work past? Example: "Start 6:30, aim to stop at 3:30, hard stop 4:00."
+   - What time do you usually start, and when do you aim to stop? Is there a hard stop you never want to work past? Example: "Start at 9:00, aim to stop at 4:30, hard stop 5:00."
    - Is the first part of the day reserved for something, like email? Example: "30–60 minutes of email first thing, no blocks then."
    - Lunch: fixed or flexible? Example: "Flexible, usually noon, anywhere from 11 to 1. Keep 45 minutes open in that window."
    - Breaks: do you want planned breaks? Example: "A 15-minute break plus 15 minutes of email, mid-morning and mid-afternoon."
    - Which days do you work? Any days you work from home or at other sites? Does travel between sites take time? Example: "Mostly one campus; sometimes two others; about 30 minutes each way."
-   - Any seasonal schedule, such as summer hours? How are its start and end dates determined? Example: "Summer 4×10s, Mon–Thu 6:30–5, starting the Monday after a specific district date."
+   - Any seasonal schedule, such as summer hours? How are its start and end dates determined? Example: "Summer 4×10s, Mon–Thu 8:00–6:30, starting the Monday after a specific date on our organization's calendar."
 
 3. Load and energy
    - How many hours of planned task time per day is realistic? Does it differ on meeting-heavy days? Example: "About 1.5 hours on my two meeting days, 2.5 hours on the others."
