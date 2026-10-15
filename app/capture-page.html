@@ -1,0 +1,668 @@
+<title>Task Planner</title>
+<!-- AI Task Planner capture page. MIT License. Edit AREAS, SHORT and the Settings copy below for your own setup. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one phone-width column split into three tabs (Capture, Tasks, Settings) with a thumb-reach tab bar at the bottom. Area colors match the Google Calendar event colors used for blocks. */
+:root{
+  --bg:#edf0f4; --paper:#fbfcfd; --ink:#17202e; --muted:#5a6678; --line:#d2d9e3;
+  --accent:#2e4a9a; --accent-ink:#ffffff; --accent-soft:#dfe6f6; --warn:#a55a12; --warn-soft:#f6e9da;
+  --urgent:#b3261e; --urgent-soft:#f8e1df; --done:#7b8796; --dot:#cdd5e0;
+  --c-tomato:#d50000; --c-flamingo:#e67c73; --c-banana:#f6bf26; --c-basil:#0b8043; --c-peacock:#039be5; --c-blueberry:#3f51b5; --c-grape:#8e24aa; --c-tangerine:#f4511e; --c-graphite:#616161;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --tabbar:64px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10151d; --paper:#171f2a; --ink:#e3e9f1; --muted:#95a2b4; --line:#2a3646;
+  --accent:#8fa8ef; --accent-ink:#0b1430; --accent-soft:#1c2a4a; --warn:#e7a15d; --warn-soft:#3a2b1c;
+  --urgent:#f08a80; --urgent-soft:#3e1f1d; --done:#6c7888; --dot:#202b38; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10151d; --paper:#171f2a; --ink:#e3e9f1; --muted:#95a2b4; --line:#2a3646;
+  --accent:#8fa8ef; --accent-ink:#0b1430; --accent-soft:#1c2a4a; --warn:#e7a15d; --warn-soft:#3a2b1c;
+  --urgent:#f08a80; --urgent-soft:#3e1f1d; --done:#6c7888; --dot:#202b38; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);background-image:radial-gradient(var(--dot) 1px,transparent 1.2px);background-size:18px 18px;color:var(--ink);font:16px/1.5 var(--f-body);padding-inline:16px;padding-block:20px calc(var(--tabbar) + 40px)}
+main{max-width:600px;margin-inline:auto;display:flex;flex-direction:column;gap:24px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font:700 1.75rem/1.1 var(--f-display);margin:0;letter-spacing:-.01em}
+.stamp{font:500 .72rem/1 var(--f-mono);color:var(--muted)}
+.panel{display:flex;flex-direction:column;gap:28px}
+h2{font:600 .78rem/1 var(--f-body);text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0 0 10px;display:flex;justify-content:space-between;gap:8px}
+h2 .n{font-family:var(--f-mono);letter-spacing:0}
+.slip{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 0 var(--line)}
+textarea{width:100%;resize:vertical;border:0;background:transparent;color:var(--ink);font:1.05rem/1.45 var(--f-body);padding:2px}
+#idea{min-height:96px}
+textarea:focus{outline:none}
+.slip:focus-within{border-color:var(--accent)}
+.row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.lbl{font:600 .72rem/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px;flex-wrap:wrap;max-width:100%}
+.seg button{border:0;background:transparent;color:var(--muted);font:700 .8rem/1 var(--f-body);padding:9px 11px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg button[aria-pressed="true"][data-u="today"],.seg button[aria-pressed="true"][data-u="tomorrow"]{background:var(--urgent);color:var(--paper)}
+.save{border:0;background:var(--accent);color:var(--accent-ink);font:700 .95rem/1 var(--f-body);padding:12px 22px;border-radius:8px;cursor:pointer}
+.save:disabled{opacity:.45;cursor:default}
+button:focus-visible,textarea:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.85rem;color:var(--muted);margin:0}
+section > .hint{margin-bottom:10px}
+.guard{font-size:.78rem;color:var(--muted);margin:0;border-top:1px dashed var(--line);padding-top:8px}
+.toast{font-size:.88rem;color:var(--accent);min-height:1.3em;margin:0}
+.status{border-radius:8px;padding:10px 12px;font-size:.9rem;background:var(--accent-soft);color:var(--ink)}
+.status.warn{background:var(--warn-soft)}
+.status ul{margin:6px 0 0;padding-left:18px}
+.status li{font:500 .76rem/1.45 var(--f-mono);color:var(--muted);padding:2px 0}
+ul.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.item{display:flex;gap:12px;align-items:flex-start;padding:11px 2px;border-top:1px solid var(--line);flex-wrap:wrap}
+.list > .item:last-child{border-bottom:1px solid var(--line)}
+.item .body{flex:1;min-width:0;overflow-wrap:anywhere}
+.chip{display:inline-block;font:700 .64rem/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;padding:4px 7px;border-radius:4px;margin-right:6px;vertical-align:2px}
+.chip.urgent{background:var(--urgent-soft);color:var(--urgent)}
+.chip.soon{background:var(--warn-soft);color:var(--warn)}
+.chip.home{background:var(--accent-soft);color:var(--accent)}
+.chip.pin{background:transparent;border:1px solid var(--line);color:var(--muted)}
+.area{display:inline-flex;align-items:center;gap:5px;font:700 .7rem/1 var(--f-body);color:var(--muted);margin-right:8px;vertical-align:1px}
+.sw{width:10px;height:10px;border-radius:50%;flex:none;display:inline-block}
+.meta{font:500 .74rem/1.4 var(--f-mono);color:var(--muted);margin-top:2px}
+.note{font-size:.85rem;color:var(--muted);margin-top:4px;padding-left:10px;border-left:2px solid var(--line)}
+.actions{display:flex;gap:6px;flex:none;align-items:flex-start}
+.x{border:0;background:transparent;color:var(--muted);font:700 .8rem/1 var(--f-body);padding:8px;cursor:pointer;border-radius:6px}
+.x:hover{color:var(--ink)}
+.btn{flex:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:700 .78rem/1 var(--f-body);padding:8px 10px;border-radius:6px;cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn.link{color:var(--accent);background:transparent}
+.day{font:600 1rem/1.2 var(--f-display);margin:16px 0 4px}
+.day:first-child{margin-top:0}
+.time{font:500 .8rem/1.4 var(--f-mono);color:var(--accent);min-width:4.6em;padding-top:2px;font-variant-numeric:tabular-nums}
+.step{font:500 .75rem/1.4 var(--f-mono);color:var(--muted);min-width:1.6em;padding-top:3px;font-variant-numeric:tabular-nums}
+.is-done .title{text-decoration:line-through;color:var(--done)}
+.carry{color:var(--warn)}
+.empty{color:var(--muted);font-size:.92rem;margin:0;padding:12px 0;border-top:1px dashed var(--line)}
+.offline{background:var(--warn-soft);color:var(--warn);border-radius:8px;padding:10px 12px;font-size:.9rem;margin:0}
+.flag{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.flag + .flag{margin-top:10px}
+.flag .msg{font-size:.9rem}
+.flag .idea-text{font-size:.85rem;color:var(--muted)}
+.area-h{font:600 1.1rem/1.2 var(--f-display);margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+.area-h:first-child{margin-top:0}
+.proj{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.proj + .proj{margin-top:12px}
+.proj-head{display:flex;gap:10px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+.proj-name{font:600 1.02rem/1.25 var(--f-display);margin:0;min-width:0;overflow-wrap:anywhere}
+.proj .list .item:first-child{border-top:0}
+.bar{height:4px;background:var(--line);border-radius:2px;margin:8px 0 4px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--accent)}
+.adjust{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.adjust textarea{min-height:64px;font-size:.95rem;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:8px}
+.adjust textarea:focus{border-color:var(--accent)}
+details summary{cursor:pointer;font:600 .78rem/1 var(--f-body);text-transform:uppercase;letter-spacing:.09em;color:var(--muted);padding:4px 0;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"▸ ";display:inline-block;width:1em}
+details[open] summary::before{content:"▾ "}
+details[open] summary{margin-bottom:10px}
+.more summary{font-size:.72rem}
+.more .inner{display:flex;flex-direction:column;gap:12px}
+.sr{position:absolute;left:-9999px}
+.inp{font:1rem/1.3 var(--f-body);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:8px;width:100%;min-width:0}
+.avlab{display:flex;flex-direction:column;gap:4px;font:600 .75rem/1 var(--f-body);color:var(--muted);flex:1;min-width:140px}
+.need{font-size:.82rem;color:var(--muted);margin-top:4px}
+.need b{color:var(--ink);font-weight:700}
+.links{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px;font-size:.82rem}
+.links a{color:var(--accent)}
+.check{margin:6px 0 0;padding-left:18px;font-size:.85rem}
+.filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.filters button{flex:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:700 .78rem/1 var(--f-body);padding:8px 11px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.filters button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.legend{display:grid;grid-template-columns:auto 1fr auto;gap:8px 12px;align-items:center;font-size:.92rem}
+.legend .cname{font:500 .74rem/1 var(--f-mono);color:var(--muted)}
+.kw{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.kw span{display:inline-flex;align-items:center;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:4px 4px 4px 10px;font-size:.85rem}
+.kw button{border:0;background:transparent;color:var(--muted);cursor:pointer;font:700 .8rem/1 var(--f-body);padding:4px 6px;border-radius:999px}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--paper);border-top:1px solid var(--line);padding:6px 12px calc(6px + env(safe-area-inset-bottom,0px))}
+.tabbar .in{max-width:600px;margin-inline:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tabbar button{border:0;background:transparent;color:var(--muted);font:700 .82rem/1 var(--f-body);padding:10px 6px;border-radius:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative}
+.tabbar button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tabbar button[aria-selected="true"]{color:var(--accent);background:var(--accent-soft)}
+.badge{position:absolute;top:4px;left:calc(50% + 8px);min-width:18px;height:18px;border-radius:9px;background:var(--urgent);color:#fff;font:700 .66rem/18px var(--f-mono);padding:0 5px}
+@media (prefers-reduced-motion:no-preference){.item,.flag{animation:in .18s ease-out}@keyframes in{from{transform:translateY(-3px)}to{transform:none}}}
+</style>
+
+<main>
+  <header>
+    <h1>Task Planner</h1>
+    <span class="stamp" id="lastRun">Planner hasn't run yet</span>
+  </header>
+
+  <p class="offline" id="offline" hidden>Can't reach your saved data from this view. Open this page from your Claude account to capture ideas.</p>
+
+  <!-- ============ CAPTURE ============ -->
+  <div class="panel" id="panel-capture" role="tabpanel" aria-labelledby="tab-capture">
+    <section aria-labelledby="capH">
+      <h2 id="capH">Capture</h2>
+      <form class="slip" id="cap">
+        <label for="idea" class="sr">Idea or task</label>
+        <textarea id="idea" placeholder="What needs doing? One line is plenty." autocomplete="off"></textarea>
+        <div class="field">
+          <span class="lbl" id="areaLbl">Area</span>
+          <div class="seg" role="group" aria-labelledby="areaLbl" id="areaSeg"></div>
+        </div>
+        <div class="field">
+          <span class="lbl" id="urgLbl">When</span>
+          <div class="seg" role="group" aria-labelledby="urgLbl" id="urgSeg">
+            <button type="button" data-u="someday" aria-pressed="false">Someday</button>
+            <button type="button" data-u="normal" aria-pressed="true">Normal</button>
+            <button type="button" data-u="soon" aria-pressed="false">This week</button>
+            <button type="button" data-u="tomorrow" aria-pressed="false">Urgent: tomorrow AM</button>
+            <button type="button" data-u="today" aria-pressed="false">Urgent: today</button>
+          </div>
+        </div>
+        <details class="more" id="more">
+          <summary>Importance and due date</summary>
+          <div class="inner">
+            <div class="field">
+              <span class="lbl" id="impLbl">Project importance</span>
+              <div class="seg" role="group" aria-labelledby="impLbl" id="impSeg">
+                <button type="button" data-i="high" aria-pressed="false">High</button>
+                <button type="button" data-i="medium" aria-pressed="true">Medium</button>
+                <button type="button" data-i="low" aria-pressed="false">Low</button>
+              </div>
+            </div>
+            <label class="avlab" style="max-width:220px">Due by (optional) <input class="inp" type="date" id="due"></label>
+          </div>
+        </details>
+        <div class="row"><p class="hint" id="urgHint"></p><button class="save" id="saveBtn" type="submit" disabled>Save</button></div>
+        <p class="guard">Keep protected records (student or employee names, IDs, grades) out of captures.</p>
+      </form>
+      <p class="toast" id="toast" role="status"></p>
+    </section>
+
+    <div class="status" id="status" hidden></div>
+
+    <section aria-labelledby="fH" id="flagSec" hidden>
+      <h2 id="fH">Needs a decision <span class="n" id="fN"></span></h2>
+      <div id="flags"></div>
+    </section>
+
+    <section aria-labelledby="rvH" id="revSec" hidden>
+      <h2 id="rvH">Review imported tasks <span class="n" id="rvN"></span></h2>
+      <p class="hint">From your Google Tasks lists. Plan it, park it, mark it done, or drop it. Nothing here is scheduled until you choose Plan this.</p>
+      <ul class="list" id="review"></ul>
+    </section>
+
+    <section aria-labelledby="qH">
+      <h2 id="qH">Waiting for the planner <span class="n" id="qN"></span></h2>
+      <ul class="list" id="queue"></ul>
+      <p class="empty" id="qEmpty">Nothing waiting. Ideas you save, and any forwarded by email, wait here until the planner picks them up.</p>
+    </section>
+
+    <section aria-labelledby="smH">
+      <h2 id="smH">Someday <span class="n" id="smN"></span></h2>
+      <p class="hint">Parked ideas. Nothing here is scheduled until you tap Plan this.</p>
+      <ul class="list" id="someday"></ul>
+      <p class="empty" id="smEmpty">No parked ideas. Pick Someday when you capture something you're not ready to plan.</p>
+    </section>
+  </div>
+
+  <!-- ============ TASKS ============ -->
+  <div class="panel" id="panel-tasks" role="tabpanel" aria-labelledby="tab-tasks" hidden>
+    <div class="filters" role="group" aria-label="Show area" id="filters"></div>
+
+    <section aria-labelledby="sH">
+      <h2 id="sH">On your calendar <span class="n" id="sN"></span></h2>
+      <p class="hint">Keep a block to approve it. Drag it to move it (it then stays put), delete it to drop the task. Tap Done only when the work is finished.</p>
+      <div id="sched"></div>
+      <p class="empty" id="sEmpty">No blocks yet. After the planner runs, your tasks appear here and on your work calendar.</p>
+    </section>
+
+    <section aria-labelledby="pH">
+      <h2 id="pH">Projects <span class="n" id="pN"></span></h2>
+      <p class="hint">Use Adjust to change urgency or importance, or to tell the planner something new.</p>
+      <div id="projects"></div>
+      <p class="empty" id="pEmpty">No active projects in this view.</p>
+    </section>
+
+    <details id="doneSec" hidden>
+      <summary>Completed <span id="dN"></span></summary>
+      <ul class="list" id="doneList"></ul>
+    </details>
+  </div>
+
+  <!-- ============ SETTINGS ============ -->
+  <div class="panel" id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
+    <section aria-labelledby="arH">
+      <h2 id="arH">Areas and calendar colors</h2>
+      <div class="legend" id="legend"></div>
+      <p class="hint" style="margin-top:10px">Urgent blocks show Tomato in any area. The area still shows here and in the block's description. Colors are applied by the color script in your Google account (scripts/apps-script-colors).</p>
+    </section>
+
+    <section aria-labelledby="avH">
+      <h2 id="avH">Out of office and lighter days <span class="n" id="avN"></span></h2>
+      <p class="hint">Vacation, conferences, sick days. Busy appointments on your personal calendar are picked up on their own.</p>
+      <ul class="list" id="avail"></ul>
+      <form class="adjust" id="avForm">
+        <div class="row">
+          <label class="avlab">From <input class="inp" type="date" id="avFrom" required></label>
+          <label class="avlab">To <input class="inp" type="date" id="avTo" required></label>
+        </div>
+        <div class="seg" role="group" aria-label="Type" id="avSeg">
+          <button type="button" data-k="out" aria-pressed="true">Out: schedule nothing</button>
+          <button type="button" data-k="light" aria-pressed="false">Lighter day</button>
+        </div>
+        <label class="sr" for="avNote">Note</label>
+        <input type="text" id="avNote" class="inp" placeholder="Note (optional), e.g. conference">
+        <div class="row"><span></span><button type="submit" class="btn primary">Add</button></div>
+      </form>
+    </section>
+
+    <section aria-labelledby="rcH">
+      <h2 id="rcH">Recurring tasks <span class="n" id="rcN"></span></h2>
+      <p class="hint">Planned every week like any other task, with a reminder you can't miss.</p>
+      <ul class="list" id="recur"></ul>
+      <p class="empty" id="rcEmpty">No recurring tasks yet.</p>
+      <form class="adjust" id="rcForm">
+        <label class="sr" for="rcTitle">Task</label>
+        <input type="text" id="rcTitle" class="inp" placeholder="Task, e.g. Run RL Alert Reports" required>
+        <div class="row">
+          <label class="avlab">Area <select class="inp" id="rcArea"></select></label>
+          <label class="avlab">Day <select class="inp" id="rcDay"><option>Mon</option><option>Tue</option><option>Wed</option><option>Thu</option><option>Fri</option><option value="any">Any day</option></select></label>
+          <label class="avlab">Minutes <input class="inp" type="number" id="rcMin" min="5" step="5" value="30"></label>
+        </div>
+        <div class="row"><span></span><button type="submit" class="btn primary">Add</button></div>
+      </form>
+    </section>
+
+    <section aria-labelledby="kwH">
+      <h2 id="kwH">Must-attend events to double-check</h2>
+      <p class="hint">Events on your organization's events calendar with these words in the title get copied to your calendar if you haven't added them yourself.</p>
+      <div class="kw" id="kwList"></div>
+      <form class="row" id="kwForm">
+        <label class="sr" for="kwIn">Add a title keyword</label>
+        <input id="kwIn" class="inp" style="flex:1" placeholder="Add a title, e.g. Convocation">
+        <button type="submit" class="btn primary">Add</button>
+      </form>
+    </section>
+
+    <section aria-labelledby="suH">
+      <h2 id="suH">Alternate schedule</h2>
+      <p class="hint" id="suText">Dates when a different weekly schedule applies, such as summer hours. Your planner rules say how the day changes. Leave blank if the planner finds the dates on a calendar.</p>
+      <div class="row" style="margin-top:10px">
+        <label class="avlab">Override start <input class="inp" type="date" id="suStart"></label>
+        <label class="avlab">Override end <input class="inp" type="date" id="suEnd"></label>
+      </div>
+      <div class="row" style="margin-top:8px"><span class="hint">Only needed if the calendar is missing the dates.</span><button type="button" class="btn" id="suSave">Save dates</button></div>
+    </section>
+  </div>
+</main>
+
+<nav class="tabbar" aria-label="Views">
+  <div class="in" role="tablist">
+    <button role="tab" id="tab-capture" aria-controls="panel-capture" aria-selected="true" data-tab="capture"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Capture<span class="badge" id="bCap" hidden></span></button>
+    <button role="tab" id="tab-tasks" aria-controls="panel-tasks" aria-selected="false" data-tab="tasks"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>Tasks<span class="badge" id="bTask" hidden></span></button>
+    <button role="tab" id="tab-settings" aria-controls="panel-settings" aria-selected="false" data-tab="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Settings</button>
+  </div>
+</nav>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const AREAS=[
+    // EDIT ME: your areas of responsibility. id = short key stored in the database;
+    // name = exact Area name the planner writes into events (the color script reads it);
+    // color = Google event color name; v = matching CSS variable defined in :root.
+    {id:"programs",name:"Department Programs",color:"Blueberry",v:"--c-blueberry"},
+    {id:"committee",name:"District Committee",color:"Basil",v:"--c-basil"},
+    {id:"ai",name:"AI Initiative",color:"Peacock",v:"--c-peacock"},
+    {id:"thinktank",name:"Think Tank",color:"Banana",v:"--c-banana"},
+    {id:"cop",name:"Community of Practice",color:"Grape",v:"--c-grape"},
+    {id:"growth",name:"Professional Growth",color:"Tangerine",v:"--c-tangerine"}
+  ];
+  const OTHER=[{name:"Urgent (any area)",color:"Tomato",v:"--c-tomato"},{name:"Out of office and travel",color:"Graphite",v:"--c-graphite"},{name:"Break + email",color:"Flamingo",v:"--c-flamingo"}];
+  const AREA=Object.fromEntries(AREAS.map(a=>[a.id,a]));
+  const SHORT={programs:"Programs",committee:"Committee",ai:"AI",thinktank:"Think Tank",cop:"CoP",growth:"Growth"}; // EDIT ME: short labels for buttons
+  const DEFAULT_KW=["All-Staff Meeting","Planning Day"]; // EDIT ME: must-attend event title words
+  const idea=$("idea"), saveBtn=$("saveBtn"), toast=$("toast");
+  let area="auto", urgency="normal", importance="medium", db=null, tShow, openAdjust=null, filter="all";
+  let ideas=[], tasks=[], avail=[], recur=[], config={}, avKind="out";
+
+  const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const sw=id=>{const a=AREA[id];return a?`<span class="sw" style="background:var(${a.v})" aria-hidden="true"></span>`:""};
+  const areaTag=id=>AREA[id]?`<span class="area">${sw(id)}${esc(SHORT[id])}</span>`:"";
+  function say(msg){toast.textContent=msg;clearTimeout(tShow);tShow=setTimeout(()=>toast.textContent="",4500)}
+  function setSeg(seg,attr,val){seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset[attr]===val)))}
+
+  // ---- Tabs ----
+  function showTab(t){
+    for(const n of ["capture","tasks","settings"]){$("panel-"+n).hidden=n!==t;$("tab-"+n).setAttribute("aria-selected",String(n===t))}
+    store.set("wi-tab",t); window.scrollTo(0,0);
+  }
+  document.querySelector(".tabbar").addEventListener("click",e=>{const b=e.target.closest("[data-tab]");if(b)showTab(b.dataset.tab)});
+  const hashTab=(location.hash||"").slice(1);
+  showTab(["capture","tasks","settings"].includes(hashTab)?hashTab:(store.get("wi-tab")||"capture"));
+
+  // ---- Capture ----
+  $("areaSeg").innerHTML=`<button type="button" data-a="auto" aria-pressed="true">Let planner pick</button>`+AREAS.map(a=>`<button type="button" data-a="${a.id}" aria-pressed="false">${sw(a.id)}${esc(SHORT[a.id])}</button>`).join("");
+  const URG_HINT={
+    someday:"Parked, not scheduled.",
+    normal:"Planned tomorrow morning into open slots.",
+    soon:"Planned tomorrow morning, finished this week.",
+    tomorrow:"Takes the first good slot tomorrow, marked busy.",
+    today:"Planned within the hour during work hours, marked busy."
+  };
+  const syncHint=()=>{$("urgHint").textContent=URG_HINT[urgency]};
+  $("areaSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;area=b.dataset.a;setSeg($("areaSeg"),"a",area)});
+  $("urgSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;urgency=b.dataset.u;setSeg($("urgSeg"),"u",urgency);syncHint()});
+  $("impSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;importance=b.dataset.i;setSeg($("impSeg"),"i",importance)});
+  syncHint();
+  idea.addEventListener("input",()=>{saveBtn.disabled=!idea.value.trim()||!db});
+  idea.addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.metaKey||e.ctrlKey)){e.preventDefault();$("cap").requestSubmit()}});
+
+  $("cap").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const text=idea.value.trim(); if(!text||!db)return;
+    saveBtn.disabled=true;
+    try{
+      await db.collection("inbox").add({text,area:area==="auto"?null:area,urgency,importance,dueBy:$("due").value||null,source:"page",
+        status:urgency==="someday"?"parked":"new",notes:[],flags:[],createdAt:new Date().toISOString()});
+      idea.value=""; $("due").value="";
+      say(urgency==="someday"?"Parked under Someday.":urgency==="today"?"Saved. It gets planned within the hour.":"Saved. The planner picks it up tomorrow morning.");
+    }catch(err){
+      say(err&&err.code==="quota_exceeded"?"The inbox is full. Clear some finished items and try again.":"Couldn't save. Check your connection and try again.");
+      saveBtn.disabled=false;
+    }
+  });
+
+  // ---- Formatting ----
+  const fmtDay=d=>d.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"});
+  const fmtShort=s=>s?new Date(s+(s.length===10?"T12:00:00":"")).toLocaleDateString(undefined,{month:"short",day:"numeric"}):"";
+  const fmtTime=d=>d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
+  const fmtMin=m=>m>=60?(Math.floor(m/60)+"h"+(m%60?" "+(m%60)+"m":"")):m+"m";
+  const fmtPlanned=s=>s?new Date(s+"T12:00:00").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):"";
+  const URG_CHIP={soon:'<span class="chip soon">This week</span>',tomorrow:'<span class="chip urgent">Tomorrow AM</span>',today:'<span class="chip urgent">Today</span>'};
+  const urgChip=u=>URG_CHIP[u]||"";
+  const impText=i=>i==="high"?"high importance":i==="low"?"low importance":"";
+  const KIND={deep:"deep work",admin:"admin",prep:"prep",followup:"follow-up",learn:"learn/build"};
+  const safeUrl=u=>/^https:\/\//i.test(u||"")?u:null;
+  const extras=t=>{
+    let h="";
+    const inputs=Array.isArray(t.inputs)?t.inputs:[], people=Array.isArray(t.people)?t.people:[];
+    if(inputs.length||people.length)h+=`<div class="need">${inputs.length?"<b>Inputs:</b> "+inputs.map(esc).join(", "):""}${inputs.length&&people.length?" · ":""}${people.length?"<b>With:</b> "+people.map(esc).join(", "):""}</div>`;
+    const ls=(Array.isArray(t.links)?t.links:[]).filter(l=>safeUrl(l&&l.url));
+    if(ls.length)h+=`<div class="links">${ls.map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.title||l.url)}</a>`).join("")}</div>`;
+    if(Array.isArray(t.checklist)&&t.checklist.length)h+=`<ul class="check">${t.checklist.map(c=>`<li>${esc(c)}</li>`).join("")}</ul>`;
+    return h;
+  };
+  const sugChip=t=>t.suggested?'<span class="chip pin" title="Added by the planner. Delete its block if you don\'t need it.">Suggested</span>':"";
+  const notesHtml=n=>(Array.isArray(n)?n:[]).map(x=>`<div class="note">${esc(x.text)}</div>`).join("");
+  const inFilter=a=>filter==="all"||a===filter;
+
+  function adjustForm(id,mode){
+    const cur=ideas.find(i=>i.id===id)||{};
+    const u=mode==="plan"?"normal":(cur.urgency&&cur.urgency!=="someday"?cur.urgency:"normal");
+    const imp=cur.importance||"medium";
+    const ar=cur.area||"auto";
+    return `<form class="adjust" data-adjust="${esc(id)}" data-mode="${mode}">
+      <div class="seg" role="group" aria-label="Area" data-g="a">
+        <button type="button" data-a="auto" aria-pressed="${ar==="auto"}">Planner picks</button>${AREAS.map(a=>`<button type="button" data-a="${a.id}" aria-pressed="${ar===a.id}">${sw(a.id)}${esc(SHORT[a.id])}</button>`).join("")}
+      </div>
+      <div class="seg" role="group" aria-label="When" data-g="u">
+        ${[["normal","Normal"],["soon","This week"],["tomorrow","Tomorrow AM"],["today","Today"]].map(([k,l])=>`<button type="button" data-u="${k}" aria-pressed="${u===k}">${l}</button>`).join("")}
+      </div>
+      <div class="seg" role="group" aria-label="Importance" data-g="i">
+        ${[["high","High"],["medium","Medium"],["low","Low"]].map(([k,l])=>`<button type="button" data-i="${k}" aria-pressed="${imp===k}">${l}</button>`).join("")}
+      </div>
+      <label class="sr" for="adj-${esc(id)}">Note for the planner</label>
+      <textarea id="adj-${esc(id)}" placeholder="Anything new the planner should know? A deadline, a meeting it prepares for, who's involved."></textarea>
+      <div class="row"><button type="button" class="btn link" data-cancel>Cancel</button><button type="submit" class="btn primary">${mode==="plan"?"Plan this":"Send to planner"}</button></div>
+    </form>`;
+  }
+
+  function render(){
+    const openTa=document.querySelector(".adjust textarea");
+    const keep=openTa?{id:openTa.id,val:openTa.value,focused:document.activeElement===openTa}:null;
+    renderInner();
+    if(keep){const ta=document.getElementById(keep.id);if(ta){ta.value=keep.val;if(keep.focused)ta.focus()}}
+  }
+
+  function renderInner(){
+    const byId=Object.fromEntries(ideas.map(i=>[i.id,i]));
+    const ideaArea=i=>i.area||null;
+
+    // Flags
+    const flagged=[];
+    for(const i of ideas)for(const [k,f] of (i.flags||[]).entries())if(!f.dismissed)flagged.push({i,f,k});
+    $("flagSec").hidden=!flagged.length; $("fN").textContent=flagged.length||"";
+    $("flags").innerHTML=flagged.map(({i,f,k})=>`<div class="flag"><div class="msg">${esc(f.text)}</div><div class="idea-text">"${esc(i.text)}"</div>
+      <div class="row"><button class="btn link" data-dismiss="${esc(i.id)}" data-k="${k}">It's fine as is</button><button class="btn" data-open="${esc(i.id)}" data-mode="adjust">Adjust</button></div>
+      ${openAdjust===i.id+"|adjust"?adjustForm(i.id,"adjust"):""}</div>`).join("");
+    const nRev=ideas.filter(i=>i.status==="review").length;
+    const bc=$("bCap"); bc.hidden=!(flagged.length+nRev); bc.textContent=flagged.length+nRev;
+
+    // Review (imported)
+    const todayStr=new Date().toLocaleDateString("en-CA");
+    const rv=ideas.filter(i=>i.status==="review").sort((a,b)=>(a.list||"").localeCompare(b.list||"")||(a.order||0)-(b.order||0));
+    $("revSec").hidden=!rv.length; $("rvN").textContent=rv.length||"";
+    $("review").innerHTML=rv.map(v=>{
+      const past=v.dueBy&&v.dueBy<todayStr;
+      const ls=(Array.isArray(v.links)?v.links:[]).filter(l=>safeUrl(l&&l.url));
+      return `<li class="item"><div class="body">${areaTag(v.area)}${v.importance==="high"?'<span class="chip soon">Starred</span>':""}${esc(v.text)}
+        ${v.details?`<div class="note">${esc(v.details)}</div>`:""}
+        ${ls.length?`<div class="links">${ls.map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.title||"Link")}</a>`).join("")}</div>`:""}
+        <div class="meta">${[esc(v.list),v.parent&&("under "+esc(v.parent)),v.dueBy?(past?'<span class="carry">was due '+esc(fmtShort(v.dueBy))+"</span>":"due "+esc(fmtShort(v.dueBy))):"no date",v.repeats&&"repeats"].filter(Boolean).join(" · ")}</div>
+        <div class="row" style="justify-content:flex-start;margin-top:8px;gap:6px">
+          <button class="btn primary" data-open="${esc(v.id)}" data-mode="plan">Plan this</button>
+          <button class="btn" data-rv="parked" data-id="${esc(v.id)}">Someday</button>
+          <button class="btn" data-rv="done" data-id="${esc(v.id)}">Already done</button>
+          <button class="btn link" data-rv="dropped" data-id="${esc(v.id)}">Drop</button>
+        </div>
+        ${openAdjust===v.id+"|plan"?adjustForm(v.id,"plan"):""}</div></li>`;
+    }).join("");
+
+    // Queue
+    const q=ideas.filter(i=>i.status==="new"||i.status==="replan").sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||""));
+    $("qN").textContent=q.length||""; $("qEmpty").hidden=q.length>0;
+    $("queue").innerHTML=q.map(v=>`<li class="item"><div class="body">${areaTag(ideaArea(v))}${urgChip(v.urgency)}${v.source==="home"?'<span class="chip home">From home</span>':""}${v.status==="replan"?'<span class="chip pin">Re-plan</span>':""}${esc(v.text)}${notesHtml(v.notes)}<div class="meta">${[esc(new Date(v.createdAt).toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})),impText(v.importance),v.dueBy&&("due "+esc(fmtShort(v.dueBy)))].filter(Boolean).join(" · ")}</div></div>${v.status==="new"?`<div class="actions">${v.source==="home"?`<button class="btn" data-park="${esc(v.id)}">Someday</button>`:""}<button class="x" data-del="${esc(v.id)}" aria-label="Remove this idea">Remove</button></div>`:""}</li>`).join("");
+
+    // Someday
+    const sd=ideas.filter(i=>i.status==="parked").sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||""));
+    $("smN").textContent=sd.length||""; $("smEmpty").hidden=sd.length>0;
+    $("someday").innerHTML=sd.map(v=>`<li class="item"><div class="body">${areaTag(ideaArea(v))}${esc(v.text)}${notesHtml(v.notes)}<div class="meta">parked ${esc(fmtShort((v.createdAt||"").slice(0,10)))}</div></div><div class="actions"><button class="btn" data-open="${esc(v.id)}" data-mode="plan">Plan this</button><button class="x" data-del="${esc(v.id)}" aria-label="Remove this idea">Remove</button></div>${openAdjust===v.id+"|plan"?adjustForm(v.id,"plan"):""}</li>`).join("");
+
+    // Filters
+    const used=new Set(tasks.map(t=>t.area).filter(Boolean));
+    $("filters").innerHTML=`<button type="button" data-f="all" aria-pressed="${filter==="all"}">All</button>`+AREAS.map(a=>`<button type="button" data-f="${a.id}" aria-pressed="${filter===a.id}">${sw(a.id)}${esc(SHORT[a.id])}</button>`).join("");
+
+    // Scheduled
+    const sched=tasks.filter(t=>t.status==="scheduled"&&t.start&&inFilter(t.area)).sort((a,b)=>a.start.localeCompare(b.start));
+    $("sN").textContent=sched.length||""; $("sEmpty").hidden=sched.length>0;
+    let html="",cur="";
+    for(const t of sched){
+      const s=new Date(t.start),day=fmtDay(s);
+      if(day!==cur){if(cur)html+="</ul>";html+=`<h3 class="day">${esc(day)}</h3><ul class="list">`;cur=day}
+      html+=`<li class="item"><span class="time">${esc(fmtTime(s))}</span><div class="body"><div class="title">${areaTag(t.area)}${urgChip(t.urgency)}${t.pinned?'<span class="chip pin">Pinned</span>':""}${sugChip(t)}${esc(t.title)}</div><div class="meta">${[t.project&&esc(t.project),t.order&&"step "+t.order,fmtMin(t.estimateMin||0),KIND[t.kind],t.busy?"busy":"free",t.carriedOver?'<span class="carry">carried over</span>':""].filter(Boolean).join(" · ")}</div>${t.why?`<div class="note">${esc(t.why)}</div>`:""}${extras(t)}</div><button class="btn" data-done="${esc(t.id)}">Done</button></li>`;
+    }
+    if(cur)html+="</ul>";
+    $("sched").innerHTML=html;
+    const today=new Date().toLocaleDateString("en-CA");
+    const todayCount=tasks.filter(t=>t.status==="scheduled"&&t.start&&new Date(t.start).toLocaleDateString("en-CA")===today).length;
+    const bt=$("bTask"); bt.hidden=!todayCount; bt.textContent=todayCount; bt.style.background="var(--accent)";
+
+    // Projects grouped by area
+    const groups={};
+    for(const t of tasks){if(!t.ideaId)continue;(groups[t.ideaId]=groups[t.ideaId]||[]).push(t)}
+    const IMP={high:0,medium:1,low:2}, URG={today:0,tomorrow:1,soon:2,normal:3};
+    const projs=Object.entries(groups).map(([id,ts])=>{const i=byId[id]||{};return{id,ts:ts.sort((a,b)=>(a.order||0)-(b.order||0)),idea:i,area:i.area||ts[0].area||null}})
+      .filter(p=>p.ts.some(t=>t.status==="scheduled"||t.status==="unscheduled")&&inFilter(p.area))
+      .sort((a,b)=>(URG[a.idea.urgency]??3)-(URG[b.idea.urgency]??3)||(IMP[a.idea.importance]??1)-(IMP[b.idea.importance]??1)||(a.idea.createdAt||"").localeCompare(b.idea.createdAt||""));
+    $("pN").textContent=projs.length||""; $("pEmpty").hidden=projs.length>0;
+    const order=[...AREAS.map(a=>a.id),null];
+    let ph="";
+    for(const ar of order){
+      const ps=projs.filter(p=>(p.area||null)===ar); if(!ps.length)continue;
+      if(filter==="all")ph+=`<h3 class="area-h">${ar?sw(ar):""}${esc(ar?AREA[ar].name:"No area yet")}</h3>`;
+      ph+=ps.map(p=>{
+        const live=p.ts.filter(t=>t.status!=="rejected"), done=live.filter(t=>t.status==="done").length;
+        const waiting=p.ts.filter(t=>t.status==="unscheduled");
+        const next=p.ts.find(t=>t.status==="scheduled"&&t.start);
+        const replanning=p.idea.status==="replan";
+        return `<div class="proj"><div class="proj-head"><h4 class="proj-name">${urgChip(p.idea.urgency)}${esc(p.ts[0].project||p.idea.text||"Project")}</h4>${replanning?'<span class="meta">Re-planning</span>':`<button class="btn" data-open="${esc(p.id)}" data-mode="adjust">Adjust</button>`}</div>
+          <div class="bar" aria-hidden="true"><span style="width:${live.length?Math.round(done/live.length*100):0}%"></span></div>
+          <div class="meta">${[`${done} of ${live.length} done`,impText(p.idea.importance),p.idea.dueBy&&("due "+esc(fmtShort(p.idea.dueBy))),next&&("next "+esc(new Date(next.start).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}))+" "+esc(fmtTime(new Date(next.start)))),p.idea.forecastEnd&&("expected finish "+esc(fmtPlanned(p.idea.forecastEnd)))].filter(Boolean).join(" · ")}</div>
+          ${waiting.length?`<ul class="list">${waiting.map(t=>`<li class="item"><span class="step">${t.order||"–"}</span><div class="body"><div class="title">${sugChip(t)}${esc(t.title)}</div><div class="meta">${[fmtMin(t.estimateMin||0),KIND[t.kind],t.plannedDate?"planned ~"+esc(fmtPlanned(t.plannedDate)):(t.notBefore?"waiting until "+esc(fmtShort(t.notBefore)):"not scheduled yet")].filter(Boolean).join(" · ")}</div>${t.why?`<div class="note">${esc(t.why)}</div>`:""}${extras(t)}</div><button class="btn" data-done="${esc(t.id)}">Done</button></li>`).join("")}</ul>`:""}
+          ${openAdjust===p.id+"|adjust"?adjustForm(p.id,"adjust"):""}</div>`;
+      }).join("");
+    }
+    $("projects").innerHTML=ph;
+
+    // Completed
+    const done=tasks.filter(t=>t.status==="done"&&inFilter(t.area)).sort((a,b)=>(b.doneAt||"").localeCompare(a.doneAt||""));
+    $("doneSec").hidden=!done.length; $("dN").textContent=done.length?"("+done.length+")":"";
+    $("doneList").innerHTML=done.slice(0,100).map(t=>`<li class="item is-done"><div class="body"><div class="title">${areaTag(t.area)}${esc(t.title)}</div><div class="meta">${t.project?esc(t.project)+" · ":""}${t.doneAt?"done "+esc(new Date(t.doneAt).toLocaleDateString(undefined,{month:"short",day:"numeric"})):""}</div></div><button class="btn link" data-undo="${esc(t.id)}" data-was="${t.start?"scheduled":"unscheduled"}">Undo</button></li>`).join("");
+
+    // Availability
+    const av=avail.filter(a=>(a.to||a.from)>=today).sort((a,b)=>a.from.localeCompare(b.from));
+    $("avN").textContent=av.length||"";
+    $("avail").innerHTML=av.map(a=>`<li class="item"><div class="body"><div class="title">${a.kind==="light"?'<span class="chip soon">Lighter</span>':'<span class="chip urgent">Out</span>'}${esc(fmtPlanned(a.from))}${a.to&&a.to!==a.from?" – "+esc(fmtPlanned(a.to)):""}</div>${a.note?`<div class="meta">${esc(a.note)}</div>`:""}</div><button class="x" data-avdel="${esc(a.id)}" aria-label="Remove this entry">Remove</button></li>`).join("");
+
+    // Recurring
+    $("rcN").textContent=recur.length||""; $("rcEmpty").hidden=recur.length>0;
+    $("recur").innerHTML=recur.slice().sort((a,b)=>(a.title||"").localeCompare(b.title||"")).map(r=>`<li class="item"><div class="body"><div class="title">${areaTag(r.area)}${esc(r.title)}</div><div class="meta">${["weekly",r.day&&r.day!=="any"?esc(r.day):"any day",fmtMin(r.minutes||30)].join(" · ")}</div></div><button class="x" data-rcdel="${esc(r.id)}" aria-label="Remove this recurring task">Remove</button></li>`).join("");
+
+    // Keywords
+    const kws=Array.isArray(config.orgEventKeywords)?config.orgEventKeywords:DEFAULT_KW;
+    $("kwList").innerHTML=kws.map((k,n)=>`<span>${esc(k)}<button type="button" data-kwdel="${n}" aria-label="Remove ${esc(k)}">×</button></span>`).join("");
+
+    // Alternate schedule
+    const su=config.altSchedule||{};
+    if(document.activeElement!==$("suStart"))$("suStart").value=su.start||"";
+    if(document.activeElement!==$("suEnd"))$("suEnd").value=su.end||"";
+  }
+
+  // Static settings pieces
+  $("legend").innerHTML=AREAS.map(a=>`<span class="sw" style="background:var(${a.v})"></span><span>${esc(a.name)}</span><span class="cname">${a.color}</span>`).join("")
+    +OTHER.map(o=>`<span class="sw" style="background:var(${o.v})"></span><span>${esc(o.name)}</span><span class="cname">${o.color}</span>`).join("");
+  $("rcArea").innerHTML=AREAS.map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join("");
+
+  function renderStatus(v){
+    if(v.lastRun)$("lastRun").textContent="Planned "+new Date(v.lastRun).toLocaleString(undefined,{weekday:"short",hour:"numeric",minute:"2-digit"});
+    const probs=Array.isArray(v.problems)?v.problems:[];
+    if(!v.summary&&!probs.length){$("status").hidden=true;return}
+    const el=$("status");
+    el.className="status"+(probs.length?" warn":"");
+    el.innerHTML=(probs.length?"<b>The planner hit a snag.</b> ":"")+esc(v.summary||"")+(probs.length?"<ul>"+probs.map(p=>"<li>"+esc(p)+"</li>").join("")+"</ul>":"");
+    el.hidden=false;
+  }
+
+  // ---- Settings forms ----
+  $("avSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;avKind=b.dataset.k;setSeg($("avSeg"),"k",avKind)});
+  $("avFrom").addEventListener("change",()=>{if(!$("avTo").value||$("avTo").value<$("avFrom").value)$("avTo").value=$("avFrom").value});
+  $("avForm").addEventListener("submit",async e=>{
+    e.preventDefault(); if(!db)return;
+    const from=$("avFrom").value,to=$("avTo").value||from;
+    if(!from||to<from){say("Pick a start date and an end date on or after it.");return}
+    const btn=e.target.querySelector('button[type="submit"]');btn.disabled=true;
+    try{await db.collection("availability").add({from,to,kind:avKind,note:$("avNote").value.trim(),createdAt:new Date().toISOString()});
+      $("avFrom").value="";$("avTo").value="";$("avNote").value="";say("Added. The planner uses it on its next run.")}
+    catch(err){say("Couldn't save that. Try again in a moment.")}
+    btn.disabled=false;
+  });
+  $("rcForm").addEventListener("submit",async e=>{
+    e.preventDefault(); if(!db)return;
+    const title=$("rcTitle").value.trim(); if(!title)return;
+    const btn=e.target.querySelector('button[type="submit"]');btn.disabled=true;
+    try{await db.collection("recurring").add({title,area:$("rcArea").value,cadence:"weekly",day:$("rcDay").value,minutes:Math.max(5,+$("rcMin").value||30),createdAt:new Date().toISOString()});
+      $("rcTitle").value="";say("Added. It's planned every week from the next run.")}
+    catch(err){say("Couldn't save that. Try again in a moment.")}
+    btn.disabled=false;
+  });
+  async function saveConfig(patch,msg){
+    if(!db)return;
+    try{await db.doc("meta/config").set({...config,...patch});say(msg)}catch(err){say("Couldn't save that. Try again in a moment.")}
+  }
+  $("kwForm").addEventListener("submit",e=>{
+    e.preventDefault(); const k=$("kwIn").value.trim(); if(!k)return;
+    const kws=Array.isArray(config.orgEventKeywords)?config.orgEventKeywords:DEFAULT_KW;
+    if(kws.some(x=>x.toLowerCase()===k.toLowerCase())){say("That one's already on the list.");return}
+    $("kwIn").value=""; saveConfig({orgEventKeywords:[...kws,k]},"Added. The planner checks for it each morning.");
+  });
+  $("suSave").addEventListener("click",()=>{
+    const s=$("suStart").value,en=$("suEnd").value;
+    if(s&&en&&en<s){say("The end date needs to be after the start date.");return}
+    saveConfig({altSchedule:{start:s||null,end:en||null}},s||en?"Dates saved.":"Cleared. The planner uses the calendar dates.");
+  });
+
+  // ---- Clicks ----
+  document.addEventListener("click",async e=>{
+    const f=e.target.closest("[data-f]");
+    if(f){filter=f.dataset.f;store.set("wi-filter",filter);render();return}
+    const kd=e.target.closest("[data-kwdel]");
+    if(kd){const kws=(Array.isArray(config.orgEventKeywords)?config.orgEventKeywords:DEFAULT_KW).filter((_,n)=>n!==+kd.dataset.kwdel);saveConfig({orgEventKeywords:kws},"Removed.");return}
+    const avd=e.target.closest("[data-avdel]"), rcd=e.target.closest("[data-rcdel]");
+    if((avd||rcd)&&db){const b=avd||rcd;b.disabled=true;try{await db.doc(avd?"availability/"+avd.dataset.avdel:"recurring/"+rcd.dataset.rcdel).delete();say("Removed.")}catch(err){say("Couldn't remove that.");b.disabled=false}return}
+    const segBtn=e.target.closest(".adjust .seg button");
+    if(segBtn&&!e.target.closest("#avSeg")){const g=segBtn.parentElement.dataset.g;setSeg(segBtn.parentElement,g,segBtn.dataset[g]);return}
+    const op=e.target.closest("[data-open]");
+    if(op){const key=op.dataset.open+"|"+op.dataset.mode;openAdjust=openAdjust===key?null:key;render();const ta=document.querySelector(".adjust textarea");if(ta)ta.focus();return}
+    if(e.target.closest("[data-cancel]")){openAdjust=null;render();return}
+    const rvb=e.target.closest("[data-rv]");
+    if(rvb&&db){
+      rvb.disabled=true; const k=rvb.dataset.rv;
+      try{
+        if(k==="parked")await db.doc("inbox/"+rvb.dataset.id).update({status:"parked",urgency:"someday"});
+        else await db.doc("inbox/"+rvb.dataset.id).update({status:"closed",closedReason:k,closedAt:new Date().toISOString()});
+        say(k==="parked"?"Moved to Someday.":k==="done"?"Marked done.":"Dropped.");
+      }catch(err){say("Couldn't update that. Try again in a moment.");rvb.disabled=false}
+      return;
+    }
+    const del=e.target.closest("[data-del]"),dn=e.target.closest("[data-done]"),un=e.target.closest("[data-undo]"),dis=e.target.closest("[data-dismiss]"),pk=e.target.closest("[data-park]");
+    const btn=del||dn||un||dis||pk; if(!btn||!db)return;
+    btn.disabled=true;
+    try{
+      if(del){await db.doc("inbox/"+del.dataset.del).delete();say("Removed.")}
+      if(pk){await db.doc("inbox/"+pk.dataset.park).update({status:"parked",urgency:"someday"});say("Moved to Someday.")}
+      if(dn){await db.doc("tasks/"+dn.dataset.done).update({status:"done",doneAt:new Date().toISOString()});say("Marked done. Undo it under Completed.")}
+      if(un){await db.doc("tasks/"+un.dataset.undo).update({status:un.dataset.was,doneAt:null});say("Moved back to your list.")}
+      if(dis){const i=ideas.find(x=>x.id===dis.dataset.dismiss);const flags=(i.flags||[]).map((f,k)=>k===+dis.dataset.k?{...f,dismissed:true}:f);await db.doc("inbox/"+i.id).update({flags});say("Okay, leaving it as is.")}
+    }catch(err){say("Couldn't update that. Try again in a moment.");btn.disabled=false}
+  });
+
+  document.addEventListener("submit",async e=>{
+    const f=e.target.closest(".adjust[data-adjust]"); if(!f||!db)return;
+    e.preventDefault();
+    const id=f.dataset.adjust, mode=f.dataset.mode, i=ideas.find(x=>x.id===id); if(!i)return;
+    const u=f.querySelector('[data-g="u"] button[aria-pressed="true"]')?.dataset.u||"normal";
+    const imp=f.querySelector('[data-g="i"] button[aria-pressed="true"]')?.dataset.i||"medium";
+    const ar=f.querySelector('[data-g="a"] button[aria-pressed="true"]')?.dataset.a||"auto";
+    const text=f.querySelector("textarea").value.trim();
+    const notes=[...(Array.isArray(i.notes)?i.notes:[])]; if(text)notes.push({text,at:new Date().toISOString()});
+    const flags=(i.flags||[]).map(x=>({...x,dismissed:true}));
+    const status=mode==="plan"?"new":(i.status==="new"?"new":"replan");
+    const sub=f.querySelector('button[type="submit"]'); sub.disabled=true;
+    try{
+      await db.doc("inbox/"+id).update({urgency:u,importance:imp,area:ar==="auto"?null:ar,notes,flags,status});
+      openAdjust=null; render();
+      say(u==="today"?"Sent. It gets planned within the hour.":mode==="plan"?"Sent to the planner. It plans this tomorrow morning.":"Got it. The planner re-plans this on its next run.");
+    }catch(err){say("Couldn't save that. Try again in a moment.");sub.disabled=false}
+  });
+
+  filter=store.get("wi-filter")||"all"; if(filter!=="all"&&!AREA[filter])filter="all";
+  render();
+
+  (async()=>{
+    db=await window.claude?.use?.("db") ?? null;
+    if(!db){$("offline").hidden=false;return}
+    saveBtn.disabled=!idea.value.trim();
+    const onErr=()=>{$("offline").hidden=false};
+    db.collection("inbox").limit(500).onSnapshot(s=>{ideas=s.docs.map(d=>({id:d.id,...d.data()}));render()},onErr);
+    db.collection("tasks").limit(800).onSnapshot(s=>{tasks=s.docs.map(d=>({id:d.id,...d.data()}));render()},onErr);
+    db.collection("availability").limit(200).onSnapshot(s=>{avail=s.docs.map(d=>({id:d.id,...d.data()}));render()},onErr);
+    db.collection("recurring").limit(100).onSnapshot(s=>{recur=s.docs.map(d=>({id:d.id,...d.data()}));render()},onErr);
+    db.doc("meta/config").onSnapshot(s=>{config=s.exists?s.data():{};render()},()=>{});
+    db.doc("meta/status").onSnapshot(s=>{if(s.exists)renderStatus(s.data())},()=>{});
+  })();
+})();
+</script>
